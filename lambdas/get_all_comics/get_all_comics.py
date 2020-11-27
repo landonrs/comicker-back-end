@@ -1,5 +1,7 @@
 import json
 
+MY_USERNAME = "Landon"
+
 
 def get_all_comics_handler(event, context):
     """
@@ -20,18 +22,17 @@ def get_all_comics_handler(event, context):
                 "title": "My First Comic",
                 "panels": [
                     {
-                        "userId": "00u11x54p97nIxyef5d6",
+                        "author": MY_USERNAME,
                         "panelId": "firstPanel1",
                         "voteCount": 5,
                         "childPanels": [
+                            generate_dummy_panel(MY_USERNAME, "secondPanel1", 2, [
+                                generate_dummy_panel(MY_USERNAME, "thirdPanel1", 3, [
+                                    generate_dummy_panel(MY_USERNAME, "fourthPanel1", 4, [])
+                                ])
+                            ]),
                             {
-                                "userId": "00u11x54p97nIxyef5d6",
-                                "panelId": "secondPanel1",
-                                "voteCount": 2,
-                                "childPanels": [],
-                            },
-                            {
-                                "userId": "00u11x54p97nIxyef5d6",
+                                "author": MY_USERNAME,
                                 "panelId": "secondPanel2",
                                 "voteCount": 4,
                                 "childPanels": [],
@@ -47,18 +48,18 @@ def get_all_comics_handler(event, context):
                     "title": "My Second Comic",
                     "panels": [
                         {
-                            "userId": "00u11x54p97nIxyef5d6",
+                            "author": MY_USERNAME,
                             "panelId": "firstPanel1",
                             "voteCount": 5,
                             "childPanels": [
                                 {
-                                    "userId": "00u11x54p97nIxyef5d6",
+                                    "author": MY_USERNAME,
                                     "panelId": "secondPanel1",
                                     "voteCount": 2,
                                     "childPanels": [],
                                 },
                                 {
-                                    "userId": "00u11x54p97nIxyef5d6",
+                                    "author": MY_USERNAME,
                                     "panelId": "secondPanel2",
                                     "voteCount": 4,
                                     "childPanels": [],
@@ -69,3 +70,12 @@ def get_all_comics_handler(event, context):
                 },
             }]),
     }
+
+
+def generate_dummy_panel(author, panel_id, vote_count, child_panels):
+    return {
+            "author": author,
+            "panelId": panel_id,
+            "voteCount": vote_count,
+            "childPanels": child_panels,
+        }
