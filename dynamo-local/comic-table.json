@@ -1,0 +1,13 @@
+{
+    "TableName": "comicTable",
+    "KeySchema": [
+      { "AttributeName": "comicId", "KeyType": "HASH" }
+    ],
+    "AttributeDefinitions": [
+      { "AttributeName": "comicId", "AttributeType": "S" }
+    ],
+    "ProvisionedThroughput": {
+      "ReadCapacityUnits": 2,
+      "WriteCapacityUnits": 2
+    }
+}
