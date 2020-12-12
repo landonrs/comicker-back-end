@@ -4,6 +4,11 @@ import boto3
 from botocore.exceptions import ClientError
 from datetime import datetime
 
+
+"""
+REALLY JANKY, but REMEMBER TO COPY THIS INTO EVERY LAMBDA DIRECTORY WHEN DONE DEVELOPING!!!
+"""
+
 TABLE_NAME = "comicTable"
 LOCAL_ENDPOINT = "http://dynamo:8000"
 LAST_EVALUATED_KEY = "LastEvaluatedKey"
@@ -14,9 +19,18 @@ class ComicTable:
         self.table = boto3.session.Session().resource('dynamodb', endpoint_url=LOCAL_ENDPOINT).Table(
             TABLE_NAME)
 
+    def get_comic(self, comic_id):
+        try:
+            response = self.table.get_item(
+                Key={
+                    "comicId": comic_id
+                }
+            )
+            return response.get('Item', {})
+        except ClientError as e:
+            print(f"Exception occurred {e}")
+
     def put_comic(self, comic_data):
-        last_updated_timestamp = datetime.utcnow().isoformat()
-        comic_data.update({"lastUpdated": last_updated_timestamp})
         try:
             response = self.table.put_item(
                 Item=comic_data
@@ -24,13 +38,7 @@ class ComicTable:
             return response
         except ClientError as e:
             print(f"Exception occurred {e}")
-
-    def create_comic(self, comic_data):
-        # record create time
-        create_time_stamp = datetime.utcnow().isoformat()
-        comic_data["createDate"] = create_time_stamp
-
-        return self.put_comic(comic_data)
+            raise e
 
     def get_comics(self, pagination_key = None, sort_type = None):
         cleaned_comics = []

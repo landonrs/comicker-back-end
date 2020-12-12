@@ -2,7 +2,7 @@ import json
 
 import pytest
 
-from lambdas.get_all_comics import get_all_comics_handler
+from get_all_comics import get_all_comics_handler
 
 
 @pytest.fixture()

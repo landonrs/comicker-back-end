@@ -30,12 +30,22 @@ def create_comic_handler(event, context):
         # comic was previously created, get from database and add panel
         comic_data = comic_table.get_comic(comic_id)
         print(comic_data)
-        # TODO add panel to parent
+        parent_panel_id = body.get("parentPanelId")
+        if not parent_panel_id:
+            return return_400("missing required fields")
+
+        new_panel = generate_panel(user_profile)
+        parent_panel = find_panel(comic_data["comic"]["panels"], parent_panel_id)
+        if not parent_panel:
+            return return_400("parent panel id does not exist in comic")
+
+        parent_panel["childPanels"].append(new_panel)
+        comic_table.put_comic(comic_data)
+
         return {
             "statusCode": 200,
-            "body": json.dumps({"comicId": comic_id}),
+            "body": json.dumps({"panelId": new_panel["panelId"]}),
         }
-
     else:
         comic_title = body["title"]
         # creating new comic
@@ -45,6 +55,15 @@ def create_comic_handler(event, context):
             "body": json.dumps(comic_id_response),
         }
 
+
+def generate_panel(user_profile):
+    return {
+                    "panelId": _create_uuid(),
+                    "voteCount": 0,
+                    "voterIds": [user_profile[SUB]],
+                    "author": user_profile[SUB],
+                    "childPanels": []
+                }
 
 def _create_new_comic(user_profile, comic_title):
     create_date = datetime.utcnow().isoformat()
@@ -59,8 +78,8 @@ def _create_new_comic(user_profile, comic_title):
             "panels": [
                 {
                     "panelId": _create_uuid(),
-                    "vote_count": 0,
-                    "voter_ids": [user_profile[SUB]],
+                    "voteCount": 0,
+                    "voterIds": [user_profile[SUB]],
                     "author": user_profile[SUB],
                     "childPanels": []
                 }
@@ -75,3 +94,22 @@ def _create_new_comic(user_profile, comic_title):
 
 def _create_uuid():
     return str(uuid.uuid4())
+
+
+def find_panel(panels, panel_id):
+    for panel in panels:
+        if panel["panelId"] == panel_id:
+            return panel
+        else:
+            child_panels = panel["childPanels"]
+            panel = find_panel(child_panels, panel_id)
+            if panel:
+                return panel
+
+    return None
+
+def return_400(message):
+    return {
+                "statusCode": 400,
+                "body": json.dumps({"message": message}),
+            }
