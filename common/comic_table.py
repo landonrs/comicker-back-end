@@ -78,59 +78,7 @@ def replace_decimals(obj):
     else:
         return obj
 
+
 def print_exception(exception):
     print(f"Exception occurred {exception}")
 
-
-def bootstrap_table():
-    comic_table = ComicTable()
-    comic_table.create_comic({
-        "comicId": "firstComic1",
-        "comic": {
-            "title": "My First Comic",
-            "panels": [
-                {
-                    "author": "Landon",
-                    "panelId": "firstPanel1",
-                    "voteCount": 5,
-                    "childPanels": [
-                        {
-                            "author": "Landon",
-                            "panelId": "secondPanel1",
-                            "voteCount": 2,
-                            "childPanels": [
-                                {
-                                    "author": "Landon",
-                                    "panelId": "thirdPanel1",
-                                    "voteCount": 3,
-                                    "childPanels": [
-                                        {
-                                            "author": "Landon",
-                                            "panelId": "fourthPanel1",
-                                            "voteCount": 4,
-                                            "childPanels": []
-                                        }
-                                    ]
-                                }
-                            ]
-                        },
-                        {
-                            "author": "Landon",
-                            "panelId": "secondPanel2",
-                            "voteCount": 4,
-                            "childPanels": []
-                        }
-                    ]
-                }
-            ]
-        }
-    })
-
-
-def read_comics():
-    comic_table = ComicTable()
-    print(comic_table.get_comics())
-
-if __name__ == '__main__':
-    # bootstrap_table()
-    read_comics()

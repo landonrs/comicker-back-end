@@ -23,15 +23,3 @@ def get_all_comics_handler(event, context):
     print(response)
 
     return response
-
-
-# def generate_dummy_panel(author, panel_id, vote_count, child_panels):
-#     return {
-#             "author": author,
-#             "panelId": panel_id,
-#             "voteCount": vote_count,
-#             "childPanels": child_panels,
-#         }
-
-# if __name__ == '__main__':
-#     get_all_comics_handler({}, {})

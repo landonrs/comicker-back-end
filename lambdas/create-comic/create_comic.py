@@ -61,7 +61,6 @@ def create_comic_handler(event, context):
 def generate_panel(user_profile):
     return {
                     "panelId": _create_uuid(),
-                    "voteCount": 0,
                     "voterIds": [user_profile[SUB]],
                     "author": user_profile[SUB],
                     "childPanels": []
@@ -81,7 +80,6 @@ def _create_new_comic(user_profile, comic_title):
             "panels": [
                 {
                     "panelId": _create_uuid(),
-                    "voteCount": 0,
                     "voterIds": [user_profile[SUB]],
                     "author": user_profile[SUB],
                     "childPanels": []
