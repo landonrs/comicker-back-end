@@ -31,8 +31,6 @@ class ComicTable:
             print(f"Exception occurred {e}")
 
     def put_comic(self, comic_data):
-        last_updated_timestamp = datetime.utcnow().isoformat()
-        comic_data.update({"lastUpdated": last_updated_timestamp})
         try:
             response = self.table.put_item(
                 Item=comic_data
@@ -40,13 +38,7 @@ class ComicTable:
             return response
         except ClientError as e:
             print(f"Exception occurred {e}")
-
-    def create_comic(self, comic_data):
-        # record create time
-        create_time_stamp = datetime.utcnow().isoformat()
-        comic_data["createDate"] = create_time_stamp
-
-        return self.put_comic(comic_data)
+            raise e
 
     def get_comics(self, pagination_key = None, sort_type = None):
         cleaned_comics = []
