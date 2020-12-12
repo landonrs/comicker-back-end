@@ -1,6 +1,7 @@
 import json
 from common.comic_table import ComicTable
 import common.okta_helper as okta_helper
+import common.comic_navigation as comic_nav
 
 
 def vote_on_comic_panel_handler(event, context):
@@ -34,16 +35,18 @@ def vote_on_comic_panel_handler(event, context):
 
     comic_data = comic_table.get_comic(comic_id)
 
-    updated_comic = _add_user_to_panel_votes(comic_data, user_id, panel_id)
+    panel = comic_nav.find_panel(comic_data["comic"]["panels"], panel_id)
+    if not panel:
+        return {
+            "statusCode": 404,
+            "body": json.dumps({"message": "panel id not found in comic"}),
+        }
 
-    comic_table.put_comic(updated_comic)
+    panel["voterIds"].append(user_id)
+
+    comic_table.put_comic(comic_data)
 
     return {
         "statusCode": 200,
         "body": json.dumps({"comicId": comic_id}),
     }
-
-
-def _add_user_to_panel_votes(comic_data, user_id, panel_id):
-    # TODO find panel and add user id to it
-    return comic_data
