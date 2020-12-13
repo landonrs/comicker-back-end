@@ -30,7 +30,6 @@ def create_comic_handler(event, context):
     if comic_id:
         # comic was previously created, get from database and add panel
         comic_data = comic_table.get_comic(comic_id)
-        print(comic_data)
         parent_panel_id = body.get("parentPanelId")
         if not parent_panel_id:
             return return_400("missing required fields")
