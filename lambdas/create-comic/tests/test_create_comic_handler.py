@@ -1,67 +1,115 @@
 import pytest
-# from create_comic import create_comic_handler as test_model
+import create_comic
+import common.okta_helper as okta_helper
+from unittest.mock import MagicMock
+import uuid
 
+TEST_USER_ID = "testUserId"
+TEST_USER_AUTH_HEADER = "Bearer testUserToken"
+TEST_USER_PROFILE = {
+    "sub": TEST_USER_ID
+}
 
-TEST_COMIC = {
-  "lastUpdated": "2020-12-05T22:03:33.613021",
-  "comicId": "firstComic1",
-  "comic": {
-    "title": "My First Comic",
-    "panels": [
-      {
-        "panelId": "firstPanel1",
-        "voterIds": [],
-        "author": "Landon",
-        "childPanels": [
-          {
-            "panelId": "secondPanel1",
-            "voterIds": [],
-            "author": "Landon",
-            "childPanels": [
-              {
-                "panelId": "thirdPanel1",
-                "voterIds": [],
-                "author": "Landon",
+TEST_COMIC_ID = "firstComic1"
+TEST_PANEL_2_ID = "secondPanel1"
+
+TEST_BASIC_COMIC = {
+    "lastUpdated": "2020-12-05T22:03:33.613021",
+    "comicId": TEST_COMIC_ID,
+    "comic": {
+        "title": "My First Comic",
+        "panels": [
+            {
+                "panelId": "firstPanel1",
+                "voterIds": [TEST_USER_ID],
+                "author": TEST_USER_ID,
                 "childPanels": [
-                  {
-                    "panelId": "fourthPanel1",
-                    "voterIds": [],
-                    "author": "Landon",
-                    "childPanels": []
-                  }
+                    {
+                        "panelId": TEST_PANEL_2_ID,
+                        "voterIds": [TEST_USER_ID],
+                        "author": TEST_USER_ID,
+                        "childPanels": []
+                    },
                 ]
-              }
-            ]
-          },
-          {
-            "panelId": "secondPanel2",
-            "voterIds": [],
-            "author": "Landon",
-            "childPanels": []
-          }
+            }
         ]
-      }
-    ]
-  },
-  "createDate": "2020-12-05T22:03:33.612995"
+    },
+    "createDate": "2020-12-05T22:03:33.612995"
 }
 
 
-@pytest.fixture(autouse=True)
-def apigw_event():
-    """ Generates API GW Event"""
-
-    return {
-        "body": '{ "test": "body"}',
-        "headers": {
-            "Accept-Encoding": "gzip, deflate, sdch",
-        }
+def mock_get_comic(comic_id):
+    comic_mapping = {
+        TEST_COMIC_ID: TEST_BASIC_COMIC
     }
 
-
-# def test_lambda_handler(apigw_event, mocker):
-#     ret = te(TEST_COMIC["comic"]["panels"], "secondPanel2")
-#
-#     print(ret)
+    return comic_mapping[comic_id]
 
 
+def mock_get_user_profile(auth_header):
+    user_mapping = {
+        TEST_USER_AUTH_HEADER: TEST_USER_PROFILE
+    }
+
+    return user_mapping[auth_header]
+
+
+mock_table = MagicMock()
+mock_table.get_comic.side_effect = mock_get_comic
+
+MOCK_UUID = "mockUUID"
+MOCK_TIMESTAMP = "mockTimestamp"
+
+
+@pytest.fixture(autouse=True)
+def common_mocks(monkeypatch):
+    mock_table.reset_mock()
+    monkeypatch.setattr(create_comic, "ComicTable", lambda: mock_table)
+    monkeypatch.setattr(okta_helper, "get_user_profile", mock_get_user_profile)
+    monkeypatch.setattr(uuid, "uuid4", lambda: MOCK_UUID)
+    monkeypatch.setattr(create_comic, "_get_timestamp", lambda: MOCK_TIMESTAMP)
+
+
+TEST_EVENT = {
+    "headers": {"Authorization": TEST_USER_AUTH_HEADER},
+    "body": {
+        "comicId": TEST_COMIC_ID,
+        "parentPanelId": TEST_PANEL_2_ID
+    }
+}
+
+
+def test_should_add_new_panel_to_comic_data(mocker):
+    expected_payload = {
+        "lastUpdated": MOCK_TIMESTAMP,
+        "comicId": TEST_COMIC_ID,
+        "comic": {
+            "title": "My First Comic",
+            "panels": [
+                {
+                    "panelId": "firstPanel1",
+                    "voterIds": [TEST_USER_ID],
+                    "author": TEST_USER_ID,
+                    "childPanels": [
+                        {
+                            "panelId": TEST_PANEL_2_ID,
+                            "voterIds": [TEST_USER_ID],
+                            "author": TEST_USER_ID,
+                            "childPanels": [
+                                {
+                                    "panelId": MOCK_UUID,
+                                    "voterIds": [TEST_USER_ID],
+                                    "author": TEST_USER_ID,
+                                    "childPanels": []
+                                }]
+                        },
+                    ]
+                }
+            ]
+        },
+        "createDate": "2020-12-05T22:03:33.612995"
+    }
+
+    create_comic.create_comic_handler(TEST_EVENT, None)
+
+    mock_table.put_comic.assert_called_once_with(expected_payload)

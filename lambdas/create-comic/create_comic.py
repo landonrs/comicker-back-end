@@ -42,6 +42,7 @@ def create_comic_handler(event, context):
             return return_400("parent panel id does not exist in comic")
 
         parent_panel["childPanels"].append(new_panel)
+        comic_data["lastUpdated"] = _get_timestamp()
         comic_table.put_comic(comic_data)
 
         return {
@@ -68,7 +69,7 @@ def generate_panel(user_profile):
 
 
 def _create_new_comic(user_profile, comic_title):
-    create_date = datetime.utcnow().isoformat()
+    create_date = _get_timestamp()
     comic_id = _create_uuid()
 
     comic_data = {
@@ -95,6 +96,10 @@ def _create_new_comic(user_profile, comic_title):
 
 def _create_uuid():
     return str(uuid.uuid4())
+
+
+def _get_timestamp():
+    return datetime.utcnow().isoformat()
 
 
 def return_400(message):
