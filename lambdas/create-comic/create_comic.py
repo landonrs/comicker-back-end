@@ -6,6 +6,7 @@ import uuid
 from datetime import datetime
 
 SUB = "sub"
+GIVEN_NAME = "given_name"
 
 
 def create_comic_handler(event, context):
@@ -14,6 +15,7 @@ def create_comic_handler(event, context):
 
     :return: The created comic meta data.
     """
+    print(event)
     auth_header = event["headers"].get("Authorization", "")
     user_profile = okta_helper.get_user_profile(auth_header)
     if not user_profile:
@@ -22,7 +24,7 @@ def create_comic_handler(event, context):
             "body": json.dumps({"message": "not authorized"}),
         }
 
-    body = event["body"]
+    body = json.loads(event["body"])
     comic_table = ComicTable()
 
     comic_id = body.get("comicId")
@@ -62,7 +64,10 @@ def generate_panel(user_profile):
     return {
                     "panelId": _create_uuid(),
                     "voterIds": [user_profile[SUB]],
-                    "author": user_profile[SUB],
+                    # storing the actual user's name for the alpha, to make things much simpler
+                    # this will be removed if I ever get into a beta phase
+                    "author": user_profile[GIVEN_NAME],
+                    "authorId": user_profile[SUB],
                     "childPanels": []
                 }
 
@@ -78,12 +83,7 @@ def _create_new_comic(user_profile, comic_title):
         "comic": {
             "title": comic_title,
             "panels": [
-                {
-                    "panelId": _create_uuid(),
-                    "voterIds": [user_profile[SUB]],
-                    "author": user_profile[SUB],
-                    "childPanels": []
-                }
+                generate_panel(user_profile)
             ]
         }}
 
