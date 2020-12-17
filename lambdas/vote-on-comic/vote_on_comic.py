@@ -3,6 +3,8 @@ from common.comic_table import ComicTable
 import common.okta_helper as okta_helper
 import common.comic_navigation as comic_nav
 
+VOTER_IDS = "voterIds"
+
 
 def vote_on_comic_panel_handler(event, context):
     """
@@ -42,7 +44,9 @@ def vote_on_comic_panel_handler(event, context):
             "body": json.dumps({"message": "panel id not found in comic"}),
         }
 
-    panel["voterIds"].append(user_id)
+    # don't let users vote multiple times
+    if user_id not in panel[VOTER_IDS]:
+        panel[VOTER_IDS].append(user_id)
 
     comic_table.put_comic(comic_data)
 
