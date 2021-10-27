@@ -1,3 +1,5 @@
+import json
+
 import pytest
 import vote_on_comic
 import common.okta_helper as okta_helper
@@ -67,9 +69,9 @@ def common_mocks(monkeypatch):
 TEST_EVENT = {
     "headers": {"Authorization": TEST_USER_AUTH_HEADER},
     "pathParameters": {"comicId": TEST_COMIC_ID},
-    "body": {
+    "body": json.dumps({
         "panelId": TEST_PANEL_2_ID
-    }
+    })
 }
 
 

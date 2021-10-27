@@ -16,7 +16,7 @@ def vote_on_comic_panel_handler(event, context):
     print(event["pathParameters"])
 
     comic_id = event["pathParameters"].get("comicId")
-    panel_id = event["body"].get("panelId")
+    panel_id = json.loads(event["body"]).get("panelId")
     if not comic_id or not panel_id:
         return {
             "statusCode": 400,
