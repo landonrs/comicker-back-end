@@ -21,7 +21,7 @@ class ImageUrlHelper:
         # Generate a presigned URL for the S3 client method
         response = self.s3_client.generate_presigned_url(ClientMethod="put_object",
                                                     Params={"Bucket": BUCKET_NAME, "Key": object_key, "ContentType": "multipart/form-data"},
-                                                    ExpiresIn=3600)
+                                                    ExpiresIn=180)
 
         # The response contains the presigned URL
         return response
