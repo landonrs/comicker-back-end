@@ -1,4 +1,5 @@
 import boto3
+from botocore.config import Config
 from botocore.exceptions import ClientError
 
 BUCKET_NAME = "comicker-comic-panels"
@@ -6,8 +7,7 @@ BUCKET_NAME = "comicker-comic-panels"
 
 class ImageUrlHelper:
     def __init__(self):
-        # using IAM role for session creds
-        self.s3_client = boto3.client("s3")
+        self.s3_client = boto3.client("s3", config=Config(signature_version='s3v4'))
 
     def create_put_object_presigned_url(self, object_key: str) -> str:
         """Generate a presigned URL to invoke an S3.Client method
@@ -20,13 +20,13 @@ class ImageUrlHelper:
 
         # Generate a presigned URL for the S3 client method
         response = self.s3_client.generate_presigned_url(ClientMethod="put_object",
-                                                    Params={"Bucket": BUCKET_NAME, "Key": object_key},
-                                                    ExpiresIn=180)
+                                                    Params={"Bucket": BUCKET_NAME, "Key": object_key, "ContentType": "multipart/form-data"},
+                                                    ExpiresIn=3600)
 
         # The response contains the presigned URL
         return response
 
 
-# if __name__ == "__main__":
-#     url = ImageUrlHelper().create_put_object_presigned_url("testKey.jpg")
-#     print(url)
+if __name__ == "__main__":
+    url = ImageUrlHelper().create_put_object_presigned_url("testKey.jpg")
+    print(url)
