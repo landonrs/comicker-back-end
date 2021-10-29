@@ -1,3 +1,5 @@
+import json
+
 import pytest
 import create_comic
 import common.okta_helper as okta_helper
@@ -5,9 +7,11 @@ from unittest.mock import MagicMock
 import uuid
 
 TEST_USER_ID = "testUserId"
+TEST_USER_NAME = "myUser"
 TEST_USER_AUTH_HEADER = "Bearer testUserToken"
 TEST_USER_PROFILE = {
-    "sub": TEST_USER_ID
+    "sub": TEST_USER_ID,
+    "given_name": TEST_USER_NAME
 }
 
 TEST_COMIC_ID = "firstComic1"
@@ -22,12 +26,14 @@ TEST_BASIC_COMIC = {
             {
                 "panelId": "firstPanel1",
                 "voterIds": [TEST_USER_ID],
-                "author": TEST_USER_ID,
+                "author": TEST_USER_NAME,
+                "authorId": TEST_USER_ID,
                 "childPanels": [
                     {
                         "panelId": TEST_PANEL_2_ID,
                         "voterIds": [TEST_USER_ID],
-                        "author": TEST_USER_ID,
+                        "author": TEST_USER_NAME,
+                        "authorId": TEST_USER_ID,
                         "childPanels": []
                     },
                 ]
@@ -59,6 +65,7 @@ mock_table.get_comic.side_effect = mock_get_comic
 
 MOCK_UUID = "mockUUID"
 MOCK_TIMESTAMP = "mockTimestamp"
+MOCK_IMAGE_URL = "<mock-url>"
 
 
 @pytest.fixture(autouse=True)
@@ -70,12 +77,20 @@ def common_mocks(monkeypatch):
     monkeypatch.setattr(create_comic, "_get_timestamp", lambda: MOCK_TIMESTAMP)
 
 
+@pytest.fixture(autouse=True)
+def mock_image_url_helper(monkeypatch):
+    mock_image_url_helper = MagicMock()
+    mock_image_url_helper.create_put_object_presigned_url.return_value = MOCK_IMAGE_URL
+    monkeypatch.setattr(create_comic, "ImageUrlHelper", lambda: mock_image_url_helper)
+
+    return mock_image_url_helper
+
 TEST_EVENT = {
     "headers": {"Authorization": TEST_USER_AUTH_HEADER},
-    "body": {
+    "body": json.dumps({
         "comicId": TEST_COMIC_ID,
         "parentPanelId": TEST_PANEL_2_ID
-    }
+    })
 }
 
 
@@ -89,17 +104,20 @@ def test_should_add_new_panel_to_comic_data():
                 {
                     "panelId": "firstPanel1",
                     "voterIds": [TEST_USER_ID],
-                    "author": TEST_USER_ID,
+                    "author": TEST_USER_NAME,
+                    "authorId": TEST_USER_ID,
                     "childPanels": [
                         {
                             "panelId": TEST_PANEL_2_ID,
                             "voterIds": [TEST_USER_ID],
-                            "author": TEST_USER_ID,
+                            "author": TEST_USER_NAME,
+                            "authorId": TEST_USER_ID,
                             "childPanels": [
                                 {
                                     "panelId": MOCK_UUID,
                                     "voterIds": [TEST_USER_ID],
-                                    "author": TEST_USER_ID,
+                                    "author": TEST_USER_NAME,
+                                    "authorId": TEST_USER_ID,
                                     "childPanels": []
                                 }]
                         },
@@ -115,12 +133,18 @@ def test_should_add_new_panel_to_comic_data():
     mock_table.put_comic.assert_called_once_with(expected_payload)
 
 
+def test_should_return_panel_data_when_adding_panel_to_comic():
+    result = create_comic.create_comic_handler(TEST_EVENT, None)
+
+    assert result == {'body': '{"panelId": "mockUUID", "imageUrl": "<mock-url>"}', 'statusCode': 200}
+
+
 NEW_COMIC_TITLE = "newComicTitle"
 TEST_NEW_COMIC_EVENT = {
     "headers": {"Authorization": TEST_USER_AUTH_HEADER},
-    "body": {
-        "title": NEW_COMIC_TITLE,
-    }
+    "body": json.dumps({
+        "title": NEW_COMIC_TITLE
+    })
 }
 
 
@@ -134,7 +158,8 @@ def test_should_create_new_comic():
                 {
                     "panelId": MOCK_UUID,
                     "voterIds": [TEST_USER_ID],
-                    "author": TEST_USER_ID,
+                    "author": TEST_USER_NAME,
+                    "authorId": TEST_USER_ID,
                     "childPanels": []
                 }
             ]
@@ -145,3 +170,15 @@ def test_should_create_new_comic():
     create_comic.create_comic_handler(TEST_NEW_COMIC_EVENT, None)
 
     mock_table.put_comic.assert_called_once_with(expected_payload)
+
+
+def test_should_call_generate_url(mock_image_url_helper):
+    create_comic.create_comic_handler(TEST_NEW_COMIC_EVENT, None)
+
+    mock_image_url_helper.create_put_object_presigned_url.assert_called_once_with(object_key=f"comics/{MOCK_UUID}/{MOCK_UUID}.jpg")
+
+
+def test_should_return_image_url(mock_image_url_helper):
+    result = create_comic.create_comic_handler(TEST_NEW_COMIC_EVENT, None)
+
+    assert result == {'body': f'{{"comicId": "{MOCK_UUID}", "imageUrl": "{MOCK_IMAGE_URL}"}}', 'statusCode': 200}

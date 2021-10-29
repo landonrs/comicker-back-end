@@ -1,5 +1,6 @@
 import json
 from common.comic_table import ComicTable
+from image_url_helper import ImageUrlHelper
 import common.okta_helper as okta_helper
 import common.comic_navigation as comic_nav
 import uuid
@@ -45,24 +46,29 @@ def create_comic_handler(event, context):
         parent_panel["childPanels"].append(new_panel)
         comic_data["lastUpdated"] = _get_timestamp()
         comic_table.put_comic(comic_data)
+        url = ImageUrlHelper().create_put_object_presigned_url(object_key=f"comics/{comic_id}/{new_panel['panelId']}.jpg")
 
         return {
             "statusCode": 200,
-            "body": json.dumps({"panelId": new_panel["panelId"]}),
+            "body": json.dumps({"panelId": new_panel["panelId"], "imageUrl": url}),
         }
     else:
         comic_title = body["title"]
         # creating new comic
-        comic_id_response = _create_new_comic(user_profile, comic_title)
+        comic_id = _create_uuid()
+        comic_id_response = _create_new_comic(user_profile, comic_title, comic_id)
+        url = ImageUrlHelper().create_put_object_presigned_url(object_key=f"comics/{comic_id}/{comic_id}.jpg")
+        comic_id_response.update({"imageUrl": url})
+
         return {
             "statusCode": 200,
             "body": json.dumps(comic_id_response),
         }
 
 
-def generate_panel(user_profile):
+def generate_panel(user_profile, panel_id=None):
     return {
-                    "panelId": _create_uuid(),
+                    "panelId": panel_id if panel_id else _create_uuid(),
                     "voterIds": [user_profile[SUB]],
                     # storing the actual user's name for the alpha, to make things much simpler
                     # this will be removed if I ever get into a beta phase
@@ -72,9 +78,8 @@ def generate_panel(user_profile):
                 }
 
 
-def _create_new_comic(user_profile, comic_title):
+def _create_new_comic(user_profile, comic_title, comic_id):
     create_date = _get_timestamp()
-    comic_id = _create_uuid()
 
     comic_data = {
         "createDate": create_date,
@@ -83,7 +88,7 @@ def _create_new_comic(user_profile, comic_title):
         "comic": {
             "title": comic_title,
             "panels": [
-                generate_panel(user_profile)
+                generate_panel(user_profile, comic_id)
             ]
         }}
 
