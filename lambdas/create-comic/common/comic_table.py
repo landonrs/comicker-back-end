@@ -1,4 +1,5 @@
 import decimal
+from typing import Dict
 
 import boto3
 from botocore.exceptions import ClientError
@@ -12,6 +13,8 @@ REALLY JANKY, but REMEMBER TO COPY THIS INTO EVERY LAMBDA DIRECTORY WHEN DONE DE
 TABLE_NAME = "comicTable"
 LOCAL_ENDPOINT = "http://dynamo:8000"
 LAST_EVALUATED_KEY = "LastEvaluatedKey"
+PAGE_LIMIT = 5
+
 
 
 class ComicTable:
@@ -40,7 +43,7 @@ class ComicTable:
             print(f"Exception occurred {e}")
             raise e
 
-    def get_comics(self, pagination_key = None, sort_type = None):
+    def get_comics(self):
         cleaned_comics = []
         print("getting comics")
         try:
@@ -56,6 +59,33 @@ class ComicTable:
             for comic in comics:
                 cleaned_comics.append(replace_decimals(comic))
             return cleaned_comics
+        except ClientError as e:
+            print(f"Exception")
+
+    def get_comics_page(self, pagination_key_id: str) -> Dict:
+        cleaned_comics = []
+        print("getting comics")
+        start_key = {'comicId': pagination_key_id}
+
+        try:
+            if pagination_key_id == "first":
+                response = self.table.scan(
+                    Limit=PAGE_LIMIT
+                )
+            else:
+                response = self.table.scan(
+                    ExclusiveStartKey=start_key,
+                    Limit=PAGE_LIMIT
+                )
+            comics = response.get("Items")
+
+            for comic in comics:
+                cleaned_comics.append(replace_decimals(comic))
+
+            return {
+                "comics": cleaned_comics,
+                "pageId": response.get(LAST_EVALUATED_KEY, {}).get("comicId")
+            }
         except ClientError as e:
             print(f"Exception")
 

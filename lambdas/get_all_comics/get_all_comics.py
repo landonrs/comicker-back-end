@@ -1,6 +1,5 @@
 from common.comic_table import ComicTable
 import json
-MY_USERNAME = "Landon"
 
 
 def get_all_comics_handler(event, context):
@@ -13,13 +12,12 @@ def get_all_comics_handler(event, context):
 
         Return doc: https://docs.aws.amazon.com/apigateway/latest/developerguide/set-up-lambda-proxy-integrations.html
     """
-    comics_list = ComicTable().get_comics()
+    page_id = event["pathParameters"].get("pageId", "first")
+    page_response = ComicTable().get_comics_page(page_id)
 
     response = {
         "statusCode": 200,
-        "body": json.dumps(comics_list),
+        "body": json.dumps(page_response),
     }
-
-    print(response)
 
     return response
