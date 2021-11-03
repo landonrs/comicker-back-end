@@ -52,5 +52,5 @@ def vote_on_comic_panel_handler(event, context):
 
     return {
         "statusCode": 200,
-        "body": json.dumps({"comicId": comic_id}),
+        "body": json.dumps({"comicData": comic_data}),
     }

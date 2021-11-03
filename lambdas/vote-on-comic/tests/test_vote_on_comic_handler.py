@@ -100,7 +100,8 @@ def test_should_add_new_panel_to_comic_data():
         "createDate": "2020-12-05T22:03:33.612995"
     }
 
-    vote_on_comic.vote_on_comic_panel_handler(TEST_EVENT, None)
+    result = vote_on_comic.vote_on_comic_panel_handler(TEST_EVENT, None)
 
     mock_table.put_comic.assert_called_once_with(expected_payload)
+    assert json.loads(result["body"]) == {"comicData": expected_payload}
 
