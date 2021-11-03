@@ -16,7 +16,6 @@ LAST_EVALUATED_KEY = "LastEvaluatedKey"
 PAGE_LIMIT = 5
 
 
-
 class ComicTable:
     def __init__(self):
         self.table = boto3.session.Session().resource('dynamodb', endpoint_url=LOCAL_ENDPOINT).Table(
@@ -29,9 +28,10 @@ class ComicTable:
                     "comicId": comic_id
                 }
             )
-            return response.get('Item', {})
+            return response.get('Item', None)
         except ClientError as e:
             print(f"Exception occurred {e}")
+            return None
 
     def put_comic(self, comic_data):
         try:
@@ -111,4 +111,3 @@ def replace_decimals(obj):
 
 def print_exception(exception):
     print(f"Exception occurred {exception}")
-
