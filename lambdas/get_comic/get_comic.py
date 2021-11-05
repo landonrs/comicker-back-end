@@ -1,5 +1,7 @@
-from common.comic_table import ComicTable
+from comic_table import ComicTable
 import json
+import warnings
+warnings.filterwarnings("ignore", category=SyntaxWarning)
 
 
 def get_comic_handler(event, context):
@@ -8,6 +10,7 @@ def get_comic_handler(event, context):
 
     Returns comic data
     """
+
     comic_id = event["pathParameters"]["comicId"]
     comic_response = ComicTable().get_comic(comic_id)
 

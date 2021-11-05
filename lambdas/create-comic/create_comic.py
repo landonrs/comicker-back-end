@@ -1,10 +1,12 @@
 import json
-from common.comic_table import ComicTable
+from comic_table import ComicTable
 from image_url_helper import ImageUrlHelper
-import common.okta_helper as okta_helper
-import common.comic_navigation as comic_nav
+import okta_helper as okta_helper
+import comic_navigation as comic_nav
 import uuid
 from datetime import datetime
+import warnings
+warnings.filterwarnings("ignore", category=SyntaxWarning)
 
 SUB = "sub"
 GIVEN_NAME = "given_name"

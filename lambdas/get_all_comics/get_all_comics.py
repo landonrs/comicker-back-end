@@ -1,5 +1,7 @@
-from common.comic_table import ComicTable
+from comic_table import ComicTable
 import json
+import warnings
+warnings.filterwarnings("ignore", category=SyntaxWarning)
 
 
 def get_all_comics_handler(event, context):

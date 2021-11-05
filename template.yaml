@@ -9,13 +9,32 @@ Globals:
   Function:
     Timeout: 10
 
+Parameters:
+  System:
+    Type: String
+    Description: Defines the system we are running in
+    Default: prod
+
 Resources:
+  ComickerCommon:
+    Type: AWS::Serverless::LayerVersion
+    Properties:
+      ContentUri: common
+      CompatibleRuntimes:
+        - python3.8
+    Metadata:
+      BuildMethod: python3.8
+
   GetAllComicsFunction:
     Type: AWS::Serverless::Function # More info about Function Resource: https://github.com/awslabs/serverless-application-model/blob/master/versions/2016-10-31.md#awsserverlessfunction
     Properties:
       CodeUri: lambdas/get_all_comics
       Handler: get_all_comics.get_all_comics_handler
       Runtime: python3.8
+      Environment:
+        Variables:
+          SYSTEM: !Ref System
+          PYTHONWARNINGS: ignore
       Events:
         ComickerApi:
           Type: HttpApi # More info about API Event Source: https://github.com/awslabs/serverless-application-model/blob/master/versions/2016-10-31.md#api
@@ -25,6 +44,7 @@ Resources:
       Role: arn:aws:iam::171911271663:role/comicker-backend-lambda-role
       Layers:
         - arn:aws:lambda:us-east-1:668099181075:layer:AWSLambda-Python-AWS-SDK:4
+        - !Ref ComickerCommon
 
   GetComicFunction:
     Type: AWS::Serverless::Function # More info about Function Resource: https://github.com/awslabs/serverless-application-model/blob/master/versions/2016-10-31.md#awsserverlessfunction
@@ -32,6 +52,10 @@ Resources:
       CodeUri: lambdas/get_comic
       Handler: get_comic.get_comic_handler
       Runtime: python3.8
+      Environment:
+        Variables:
+          SYSTEM: !Ref System
+          PYTHONWARNINGS: ignore
       Events:
         ComickerApi:
           Type: HttpApi # More info about API Event Source: https://github.com/awslabs/serverless-application-model/blob/master/versions/2016-10-31.md#api
@@ -41,6 +65,7 @@ Resources:
       Role: arn:aws:iam::171911271663:role/comicker-backend-lambda-role
       Layers:
         - arn:aws:lambda:us-east-1:668099181075:layer:AWSLambda-Python-AWS-SDK:4
+        - !Ref ComickerCommon
 
   CreateComicFunction:
     Type: AWS::Serverless::Function
@@ -48,6 +73,10 @@ Resources:
       CodeUri: lambdas/create-comic/
       Handler: create_comic.create_comic_handler
       Runtime: python3.8
+      Environment:
+        Variables:
+          SYSTEM: !Ref System
+          PYTHONWARNINGS: ignore
       Events:
         ComickerApi:
           Type: HttpApi
@@ -57,6 +86,7 @@ Resources:
       Role: arn:aws:iam::171911271663:role/comicker-backend-lambda-role
       Layers:
         - arn:aws:lambda:us-east-1:668099181075:layer:AWSLambda-Python-AWS-SDK:4
+        - !Ref ComickerCommon
 
 
   voteOnComicFunction:
@@ -65,6 +95,10 @@ Resources:
       CodeUri: lambdas/vote-on-comic/
       Handler: vote_on_comic.vote_on_comic_panel_handler
       Runtime: python3.8
+      Environment:
+        Variables:
+          SYSTEM: !Ref System
+          PYTHONWARNINGS: ignore
       Events:
         ComickerApi:
           Type: HttpApi
@@ -74,3 +108,4 @@ Resources:
       Role: arn:aws:iam::171911271663:role/comicker-backend-lambda-role
       Layers:
         - arn:aws:lambda:us-east-1:668099181075:layer:AWSLambda-Python-AWS-SDK:4
+        - !Ref ComickerCommon

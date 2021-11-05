@@ -1,7 +1,9 @@
 import json
-from common.comic_table import ComicTable
-import common.okta_helper as okta_helper
-import common.comic_navigation as comic_nav
+from comic_table import ComicTable
+import okta_helper as okta_helper
+import comic_navigation as comic_nav
+import warnings
+warnings.filterwarnings("ignore", category=SyntaxWarning)
 
 VOTER_IDS = "voterIds"
 

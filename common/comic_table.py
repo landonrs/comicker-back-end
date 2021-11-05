@@ -1,25 +1,25 @@
 import decimal
 from typing import Dict
-
+import os
 import boto3
 from botocore.exceptions import ClientError
-from datetime import datetime
 
-
-"""
-REALLY JANKY, but REMEMBER TO COPY THIS INTO EVERY LAMBDA DIRECTORY WHEN DONE DEVELOPING!!!
-"""
 
 TABLE_NAME = "comicTable"
 LOCAL_ENDPOINT = "http://dynamo:8000"
 LAST_EVALUATED_KEY = "LastEvaluatedKey"
-PAGE_LIMIT = 5
+PAGE_LIMIT = 10
 
 
 class ComicTable:
     def __init__(self):
-        self.table = boto3.session.Session().resource('dynamodb', endpoint_url=LOCAL_ENDPOINT).Table(
-            TABLE_NAME)
+        if os.getenv("SYSTEM") == "prod":
+            self.table = boto3.session.Session().resource('dynamodb').Table(
+                TABLE_NAME)
+        else:
+            # print("running locally, using local DynamoDB instance")
+            self.table = boto3.session.Session().resource('dynamodb', endpoint_url=LOCAL_ENDPOINT).Table(
+                TABLE_NAME)
 
     def get_comic(self, comic_id):
         try:
