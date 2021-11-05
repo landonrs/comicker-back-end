@@ -1,4 +1,4 @@
-import requests
+from botocore.vendored import requests
 
 OKTA_BASE_PATH = "https://dev-2337597.okta.com"
 USER_INFO_ENDPOINT = "/oauth2/default/v1/userinfo"
