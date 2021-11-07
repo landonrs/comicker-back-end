@@ -5,8 +5,6 @@ import okta_helper as okta_helper
 import comic_navigation as comic_nav
 import uuid
 from datetime import datetime
-import warnings
-warnings.filterwarnings("ignore", category=SyntaxWarning)
 
 SUB = "sub"
 GIVEN_NAME = "given_name"
@@ -18,7 +16,6 @@ def create_comic_handler(event, context):
 
     :return: The created comic meta data.
     """
-    print(event)
     auth_header = event["headers"].get("Authorization", "")
     user_profile = okta_helper.get_user_profile(auth_header)
     if not user_profile:

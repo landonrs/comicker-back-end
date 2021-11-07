@@ -1,4 +1,4 @@
-from botocore.vendored import requests
+import requests
 
 OKTA_BASE_PATH = "https://dev-2337597.okta.com"
 USER_INFO_ENDPOINT = "/oauth2/default/v1/userinfo"
@@ -16,4 +16,5 @@ def get_user_profile(auth_header):
         return response.json()
     else:
         print(response.status_code)
+        print(response.text)
         return None
