@@ -24,8 +24,8 @@ def vote_on_comic_panel_handler(event, context):
             "statusCode": 400,
             "body": json.dumps({"message": "missing required fields"}),
         }
-
-    auth_header = event["headers"].get("Authorization", "")
+    # TODO - fix this for local execution (case sensitive)
+    auth_header = event["headers"].get("authorization", "")
     user_profile = okta_helper.get_user_profile(auth_header)
     if not user_profile:
         return {

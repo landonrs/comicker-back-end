@@ -16,7 +16,9 @@ def create_comic_handler(event, context):
 
     :return: The created comic meta data.
     """
-    auth_header = event["headers"].get("Authorization", "")
+    # Stupid API gateway lower cases there headers!!!
+    # TODO - fix this for local execution!
+    auth_header = event["headers"].get("authorization", "")
     user_profile = okta_helper.get_user_profile(auth_header)
     if not user_profile:
         return {
