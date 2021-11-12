@@ -3,6 +3,7 @@ from comic_table import ComicTable
 import okta_helper as okta_helper
 import comic_navigation as comic_nav
 import warnings
+import os
 warnings.filterwarnings("ignore", category=SyntaxWarning)
 
 VOTER_IDS = "voterIds"
@@ -24,8 +25,8 @@ def vote_on_comic_panel_handler(event, context):
             "statusCode": 400,
             "body": json.dumps({"message": "missing required fields"}),
         }
-    # TODO - fix this for local execution (case sensitive)
-    auth_header = event["headers"].get("authorization", "")
+    auth_key = "authorization" if os.getenv("SYSTEM") == "prod" else "Authorization"
+    auth_header = event["headers"].get(auth_key, "")
     user_profile = okta_helper.get_user_profile(auth_header)
     if not user_profile:
         return {

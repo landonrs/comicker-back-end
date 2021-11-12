@@ -1,4 +1,6 @@
 import json
+import os
+
 from comic_table import ComicTable
 from image_url_helper import ImageUrlHelper
 import okta_helper as okta_helper
@@ -18,7 +20,8 @@ def create_comic_handler(event, context):
     """
     # Stupid API gateway lower cases there headers!!!
     # TODO - fix this for local execution!
-    auth_header = event["headers"].get("authorization", "")
+    auth_key = "authorization" if os.getenv("SYSTEM") == "prod" else "Authorization"
+    auth_header = event["headers"].get(auth_key, "")
     user_profile = okta_helper.get_user_profile(auth_header)
     if not user_profile:
         return {
