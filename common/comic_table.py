@@ -1,113 +1,103 @@
-import decimal
+import json
 from typing import Dict
 import os
 import boto3
-from botocore.exceptions import ClientError
+import psycopg2 as pg
+import psycopg2.extras
 
 
 TABLE_NAME = "comicTable"
-LOCAL_ENDPOINT = "http://dynamo:8000"
+LOCAL_ENDPOINT = "localhost"
+PROD_ENDPOINT = "comickerdb.cz7ocvnyxvk3.us-east-1.rds.amazonaws.com"
+
+DB_PARAMETER = "comicker-db-creds"
 LAST_EVALUATED_KEY = "LastEvaluatedKey"
 PAGE_LIMIT = 10
 
 
 class ComicTable:
     def __init__(self):
-        if os.getenv("SYSTEM") == "prod":
-            self.table = boto3.session.Session().resource('dynamodb').Table(
-                TABLE_NAME)
-        else:
-            # print("running locally, using local DynamoDB instance")
-            self.table = boto3.session.Session().resource('dynamodb', endpoint_url=LOCAL_ENDPOINT).Table(
-                TABLE_NAME)
+        try:
+            if os.getenv("SYSTEM") == "prod":
+                ssm_client = boto3.client("ssm")
+                db_creds = json.loads(ssm_client.get_parameter(Name=DB_PARAMETER)["Parameter"]["Value"])
+                conn = pg.connect(
+                    f"dbname='comicker' user={db_creds['user']} host={PROD_ENDPOINT} password={db_creds['password']}")
+
+            else:
+                conn = pg.connect(
+                    f"dbname='comicker' user='docker' host={LOCAL_ENDPOINT} password='docker'")
+
+            conn.set_session(autocommit=True)
+            self.cursor = conn.cursor(cursor_factory=psycopg2.extras.RealDictCursor)
+        except Exception as e:
+            print(f"unable to connect to the database {repr(e)}")
 
     def get_comic(self, comic_id):
         try:
-            response = self.table.get_item(
-                Key={
-                    "comicId": comic_id
-                }
-            )
-            return response.get('Item', None)
-        except ClientError as e:
-            print(f"Exception occurred {e}")
+            query = f"""SELECT *
+                        FROM comic
+                        WHERE comic."comicId" = '{comic_id}';
+                    """
+
+            self.cursor.execute(query)
+
+            return self.cursor.fetchall()[0]
+        except Exception as e:
+            print_exception(e)
             return None
 
-    def put_comic(self, comic_data):
+    def create_comic(self, comic_data) -> None:
         try:
-            response = self.table.put_item(
-                Item=comic_data
-            )
-            return response
-        except ClientError as e:
-            print(f"Exception occurred {e}")
+            self.cursor.execute(f"""INSERT INTO comic VALUES ('{comic_data['comicId']}', '{comic_data['title']}', '{comic_data['panels']}', CURRENT_TIMESTAMP, CURRENT_TIMESTAMP);""")
+        except Exception as e:
+            print_exception(e)
             raise e
 
-    def get_comics(self):
-        cleaned_comics = []
-        print("getting comics")
+    def update_comic(self, comic_data) -> None:
         try:
-            response = self.table.scan(
-            )
-            comics = response.get("Items")
-            while LAST_EVALUATED_KEY in response:
-                response = self.table.scan(
-                    ExclusiveStartKey=response['LastEvaluatedKey']
-                )
-                comics.append(response.get("Items"))
+            query = f"""UPDATE comic
+                        SET panels = '{comic_data["panels"]}',
+                            "lastUpdated" = CURRENT_TIMESTAMP
+                        WHERE "comicId" = '{comic_data["comicId"]}';
+                        COMMIT;"""
+            self.cursor.execute(query)
+            self.cursor.co
+        except Exception as e:
+            print_exception(e)
+            raise e
 
-            for comic in comics:
-                cleaned_comics.append(replace_decimals(comic))
-            return cleaned_comics
-        except ClientError as e:
-            print(f"Exception")
-
-    def get_comics_page(self, pagination_key_id: str) -> Dict:
-        cleaned_comics = []
+    def get_comics_page(self, page_num: int) -> Dict:
         print("getting comics")
-        start_key = {'comicId': pagination_key_id}
+
+        offset = page_num * PAGE_LIMIT
 
         try:
-            if pagination_key_id == "first":
-                response = self.table.scan(
-                    Limit=PAGE_LIMIT
-                )
-            else:
-                response = self.table.scan(
-                    ExclusiveStartKey=start_key,
-                    Limit=PAGE_LIMIT
-                )
-            comics = response.get("Items")
+            query = f"""SELECT *
+               FROM comic
+               ORDER BY comic."lastUpdated" ASC
+               LIMIT {PAGE_LIMIT}
+               OFFSET {offset};
+               """
 
-            for comic in comics:
-                cleaned_comics.append(replace_decimals(comic))
+            self.cursor.execute(query)
+
+            comics = self.cursor.fetchall()
 
             return {
-                "comics": cleaned_comics,
-                "pageId": response.get(LAST_EVALUATED_KEY, {}).get("comicId")
+                "comics": comics,
+                "pageId": page_num + 1
             }
-        except ClientError as e:
-            print(f"Exception")
-
-
-# needed to clean DynamoDbs weird decimal types from the data
-def replace_decimals(obj):
-    if isinstance(obj, list):
-        for i in range(len(obj)):
-            obj[i] = replace_decimals(obj[i])
-        return obj
-    elif isinstance(obj, dict):
-        for k in obj.keys():
-            obj[k] = replace_decimals(obj[k])
-        return obj
-    elif isinstance(obj, decimal.Decimal):
-        if obj % 1 == 0:
-            return int(obj)
-        else:
-            return float(obj)
-    else:
-        return obj
+        except Exception as e:
+            print_exception(e)
 
 
 def print_exception(exception):
     print(f"Exception occurred {exception}")
+
+
+# if __name__ == "__main__":
+#     comic_table = ComicTable()
+#     comic_table.create_comic({"comicId": "12345fsef", "title": "why?", "panels": json.dumps([{"key": "value"}])})
+#     result = comic_table.get_comic("12345fsef")
+#     print(json.dumps(result, default=str))
