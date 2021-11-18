@@ -42,7 +42,12 @@ class ComicTable:
 
             self.cursor.execute(query)
 
-            return self.cursor.fetchall()[0]
+            comics = self.cursor.fetchall()
+            # TODO - remove once front end is using new contract
+            for comic in comics:
+                comic.update({"comic": {"title": comic["title"], "panels": comic["panels"]}})
+
+            return comics[0]
         except Exception as e:
             print_exception(e)
             return None
@@ -62,7 +67,6 @@ class ComicTable:
                         WHERE "comicId" = '{comic_data["comicId"]}';
                         COMMIT;"""
             self.cursor.execute(query)
-            self.cursor.co
         except Exception as e:
             print_exception(e)
             raise e
@@ -83,6 +87,9 @@ class ComicTable:
             self.cursor.execute(query)
 
             comics = self.cursor.fetchall()
+            # TODO - remove once front end is using new contract
+            for comic in comics:
+                comic.update({"comic": {"title": comic["title"], "panels": comic["panels"]}})
 
             return {
                 "comics": comics,
@@ -97,7 +104,8 @@ def print_exception(exception):
 
 
 # if __name__ == "__main__":
-#     comic_table = ComicTable()
-#     comic_table.create_comic({"comicId": "12345fsef", "title": "why?", "panels": json.dumps([{"key": "value"}])})
-#     result = comic_table.get_comic("12345fsef")
-#     print(json.dumps(result, default=str))
+    # comic_table = ComicTable()
+    # comic_table.create_comic({"comicId": "12345fsef", "title": "why?", "panels": json.dumps([{"key": "value"}])})
+    # result = comic_table.get_comic("12345fsef")
+    # result = comic_table.get_comics_page(0)
+    # print(json.dumps(result, default=str))

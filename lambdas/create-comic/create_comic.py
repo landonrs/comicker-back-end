@@ -42,14 +42,13 @@ def create_comic_handler(event, context):
             return return_400("missing required fields")
 
         new_panel = generate_panel(user_profile)
-        parent_panel = comic_nav.find_panel(comic_data["comic"]["panels"], parent_panel_id)
+        parent_panel = comic_nav.find_panel(comic_data["panels"], parent_panel_id)
 
         if not parent_panel:
             return return_400("parent panel id does not exist in comic")
 
         parent_panel["childPanels"].append(new_panel)
-        comic_data["lastUpdated"] = _get_timestamp()
-        comic_table.put_comic(comic_data)
+        comic_table.update_comic(comic_data)
         url = ImageUrlHelper().create_put_object_presigned_url(object_key=f"comics/{comic_id}/{new_panel['panelId']}.jpg")
 
         return {
@@ -83,31 +82,20 @@ def generate_panel(user_profile, panel_id=None):
 
 
 def _create_new_comic(user_profile, comic_title, comic_id):
-    create_date = _get_timestamp()
-
     comic_data = {
-        "createDate": create_date,
-        "lastUpdated": create_date,
         "comicId": comic_id,
-        "comic": {
-            "title": comic_title,
-            "panels": [
-                generate_panel(user_profile, comic_id)
-            ]
-        }}
+        "title": comic_title,
+        "panels": [
+            generate_panel(user_profile, comic_id)
+        ]}
 
-    response = ComicTable().put_comic(comic_data)
-    print(response)
+    ComicTable().create_comic(comic_data)
 
     return {"comicId": comic_id}
 
 
 def _create_uuid():
     return str(uuid.uuid4())
-
-
-def _get_timestamp():
-    return datetime.utcnow().isoformat()
 
 
 def return_400(message):
