@@ -1,12 +1,10 @@
 import json
-import os
 
 from comic_table import ComicTable
 from image_url_helper import ImageUrlHelper
 import okta_helper as okta_helper
 import comic_navigation as comic_nav
 import uuid
-from datetime import datetime
 
 SUB = "sub"
 GIVEN_NAME = "given_name"
@@ -18,10 +16,11 @@ def create_comic_handler(event, context):
 
     :return: The created comic meta data.
     """
-    # Stupid API gateway lower cases there headers!!!
-    # TODO - fix this for local execution!
-    auth_key = "authorization" if os.getenv("SYSTEM") == "prod" else "Authorization"
-    auth_header = event["headers"].get(auth_key, "")
+    # Stupid API gateway lower cases the headers!!!
+    # but sam local does not
+    auth_header = event["headers"].get("authorization", None)
+    if not auth_header:
+        auth_header = event["headers"].get("Authorization", '')
     user_profile = okta_helper.get_user_profile(auth_header)
     if not user_profile:
         return {
