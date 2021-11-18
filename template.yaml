@@ -7,7 +7,7 @@ Description: >
 # More info about Globals: https://github.com/awslabs/serverless-application-model/blob/master/docs/globals.rst
 Globals:
   Function:
-    Timeout: 10
+    Timeout: 5
 
 Parameters:
   System:
@@ -42,6 +42,12 @@ Resources:
             Path: /comics/{pageId}
             Method: get
       Role: arn:aws:iam::171911271663:role/comicker-backend-lambda-role
+      VpcConfig:
+        SecurityGroupIds:
+          - sg-0244701fa71b215bb
+        SubnetIds:
+          - subnet-0e78eaac6033a714a
+          - subnet-0db74304fc295b807
       Layers:
         - arn:aws:lambda:us-east-1:668099181075:layer:AWSLambda-Python-AWS-SDK:4
         - !Ref ComickerCommon
@@ -63,6 +69,12 @@ Resources:
             Path: /comics/comic/{comicId}
             Method: get
       Role: arn:aws:iam::171911271663:role/comicker-backend-lambda-role
+      VpcConfig:
+        SecurityGroupIds:
+          - sg-0244701fa71b215bb
+        SubnetIds:
+          - subnet-0e78eaac6033a714a
+          - subnet-0db74304fc295b807
       Layers:
         - arn:aws:lambda:us-east-1:668099181075:layer:AWSLambda-Python-AWS-SDK:4
         - !Ref ComickerCommon
@@ -84,6 +96,12 @@ Resources:
             Path: /comics/comic/create
             Method: post
       Role: arn:aws:iam::171911271663:role/comicker-backend-lambda-role
+      VpcConfig:
+        SecurityGroupIds:
+          - sg-0244701fa71b215bb
+        SubnetIds:
+          - subnet-0e78eaac6033a714a
+          - subnet-0db74304fc295b807
       Layers:
         - arn:aws:lambda:us-east-1:668099181075:layer:AWSLambda-Python-AWS-SDK:4
         - !Ref ComickerCommon
@@ -106,6 +124,12 @@ Resources:
             Path: /comics/comic/{comicId}/vote
             Method: put
       Role: arn:aws:iam::171911271663:role/comicker-backend-lambda-role
+      VpcConfig:
+        SecurityGroupIds:
+          - sg-0244701fa71b215bb
+        SubnetIds:
+          - subnet-0e78eaac6033a714a
+          - subnet-0db74304fc295b807
       Layers:
         - arn:aws:lambda:us-east-1:668099181075:layer:AWSLambda-Python-AWS-SDK:4
         - !Ref ComickerCommon

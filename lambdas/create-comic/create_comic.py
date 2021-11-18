@@ -35,6 +35,7 @@ def create_comic_handler(event, context):
 
     if comic_id:
         # comic was previously created, get from database and add panel
+        print(f"updating existing comic {comic_id}.")
         comic_data = comic_table.get_comic(comic_id)
         parent_panel_id = body.get("parentPanelId")
         if not parent_panel_id:
@@ -56,6 +57,7 @@ def create_comic_handler(event, context):
         }
     else:
         comic_title = body["title"]
+        print(f"creating new comic {comic_title}.")
         # creating new comic
         comic_id = _create_uuid()
         comic_id_response = _create_new_comic(user_profile, comic_title, comic_id)

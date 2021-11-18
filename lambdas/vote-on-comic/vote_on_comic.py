@@ -15,8 +15,6 @@ def vote_on_comic_panel_handler(event, context):
     :return: The comic panel data.
     """
 
-    print(event["pathParameters"])
-
     comic_id = event["pathParameters"].get("comicId")
     panel_id = json.loads(event["body"]).get("panelId")
     if not comic_id or not panel_id:

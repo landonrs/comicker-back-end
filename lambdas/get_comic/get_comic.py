@@ -12,6 +12,7 @@ def get_comic_handler(event, context):
     """
 
     comic_id = event["pathParameters"]["comicId"]
+    print(f"Getting comic {comic_id}.")
     comic_response = ComicTable().get_comic(comic_id)
 
     if comic_response is None:

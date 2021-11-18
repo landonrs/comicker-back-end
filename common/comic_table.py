@@ -18,15 +18,17 @@ PAGE_LIMIT = 10
 class ComicTable:
     def __init__(self):
         try:
+            print("Attempting to connect to DB.")
             if os.getenv("SYSTEM") == "prod":
                 ssm_client = boto3.client("ssm")
                 db_creds = json.loads(ssm_client.get_parameter(Name=DB_PARAMETER)["Parameter"]["Value"])
                 conn = pg.connect(
-                    f"dbname='comicker' user={db_creds['user']} host={PROD_ENDPOINT} password={db_creds['password']}")
+                    f"dbname='comicker' user={db_creds['user']} host={PROD_ENDPOINT} password={db_creds['password']}",
+                    connect_timeout=3)
 
             else:
                 conn = pg.connect(
-                    f"dbname='comicker' user='docker' host={LOCAL_ENDPOINT} password='docker'")
+                    f"dbname='comicker' user='docker' host={LOCAL_ENDPOINT} password='docker'", connect_timeout=3)
 
             conn.set_session(autocommit=True)
             self.cursor = conn.cursor(cursor_factory=psycopg2.extras.RealDictCursor)

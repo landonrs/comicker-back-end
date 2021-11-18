@@ -15,6 +15,7 @@ def get_all_comics_handler(event, context):
         Return doc: https://docs.aws.amazon.com/apigateway/latest/developerguide/set-up-lambda-proxy-integrations.html
     """
     page_id = event["pathParameters"].get("pageId", "first")
+    print(f"Getting comic for page {page_id}.")
     page_response = ComicTable().get_comics_page(page_num=0 if page_id == "first" else page_id)
 
     response = {
