@@ -54,7 +54,7 @@ class ComicTable:
 
     def create_comic(self, comic_data) -> None:
         try:
-            self.cursor.execute(f"""INSERT INTO comic VALUES ('{comic_data['comicId']}', '{comic_data['title']}', '{comic_data['panels']}', CURRENT_TIMESTAMP, CURRENT_TIMESTAMP);""")
+            self.cursor.execute(f"""INSERT INTO comic VALUES ('{comic_data['comicId']}', '{comic_data['title']}', '{json.dumps(comic_data['panels'])}', CURRENT_TIMESTAMP, CURRENT_TIMESTAMP);""")
         except Exception as e:
             print_exception(e)
             raise e
@@ -62,7 +62,7 @@ class ComicTable:
     def update_comic(self, comic_data) -> None:
         try:
             query = f"""UPDATE comic
-                        SET panels = '{comic_data["panels"]}',
+                        SET panels = '{json.dumps(comic_data["panels"])}',
                             "lastUpdated" = CURRENT_TIMESTAMP
                         WHERE "comicId" = '{comic_data["comicId"]}';
                         COMMIT;"""

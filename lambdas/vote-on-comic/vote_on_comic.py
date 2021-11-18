@@ -3,7 +3,6 @@ from comic_table import ComicTable
 import okta_helper as okta_helper
 import comic_navigation as comic_nav
 import warnings
-import os
 warnings.filterwarnings("ignore", category=SyntaxWarning)
 
 VOTER_IDS = "voterIds"
@@ -25,8 +24,11 @@ def vote_on_comic_panel_handler(event, context):
             "statusCode": 400,
             "body": json.dumps({"message": "missing required fields"}),
         }
-    auth_key = "authorization" if os.getenv("SYSTEM") == "prod" else "Authorization"
-    auth_header = event["headers"].get(auth_key, "")
+    # Stupid API gateway lower cases the headers!!!
+    # but sam local does not
+    auth_header = event["headers"].get("authorization", None)
+    if not auth_header:
+        auth_header = event["headers"].get("Authorization", '')
     user_profile = okta_helper.get_user_profile(auth_header)
     if not user_profile:
         return {
@@ -55,5 +57,5 @@ def vote_on_comic_panel_handler(event, context):
 
     return {
         "statusCode": 200,
-        "body": json.dumps({"comicData": comic_data}),
+        "body": json.dumps({"comicData": comic_data}, default=str),
     }

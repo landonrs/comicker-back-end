@@ -11,7 +11,7 @@ CREATE DATABASE comicker;
 CREATE TABLE IF NOT EXISTS comic (
   "comicId" VARCHAR PRIMARY KEY,
   title VARCHAR,
-  panels jsonb,
+  panels JSONB,
   "createDate" TIMESTAMPTZ not null,
   "lastUpdated" TIMESTAMPTZ not null DEFAULT CURRENT_TIMESTAMP
 );

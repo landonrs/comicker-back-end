@@ -22,7 +22,7 @@ def get_comic_handler(event, context):
     else:
         response = {
             "statusCode": 200,
-            "body": json.dumps(comic_response),
+            "body": json.dumps(comic_response, default=str),
         }
 
     return response

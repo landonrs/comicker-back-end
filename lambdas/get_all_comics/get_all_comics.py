@@ -19,7 +19,7 @@ def get_all_comics_handler(event, context):
 
     response = {
         "statusCode": 200,
-        "body": json.dumps(page_response),
+        "body": json.dumps(page_response, default=str),
     }
 
     return response
