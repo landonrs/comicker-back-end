@@ -77,7 +77,7 @@ def generate_panel(user_profile, panel_id=None):
                     "voterIds": [user_profile[SUB]],
                     # storing the actual user's name for the alpha, to make things much simpler
                     # this will be removed if I ever get into a beta phase
-                    "author": user_profile[GIVEN_NAME],
+                    "author": user_profile["preferred_username"].split("@")[0],
                     "authorId": user_profile[SUB],
                     "childPanels": []
                 }

@@ -47,9 +47,6 @@ class ComicTable:
             self.cursor.execute(query)
 
             comics = self.cursor.fetchall()
-            # TODO - remove once front end is using new contract
-            for comic in comics:
-                comic.update({"comic": {"title": comic["title"], "panels": comic["panels"]}})
 
             return comics[0]
         except Exception as e:
@@ -83,7 +80,7 @@ class ComicTable:
         try:
             query = f"""SELECT *
                FROM comic
-               ORDER BY comic."lastUpdated" ASC
+               ORDER BY comic."lastUpdated" DESC
                LIMIT {PAGE_LIMIT}
                OFFSET {offset};
                """
@@ -91,13 +88,10 @@ class ComicTable:
             self.cursor.execute(query)
 
             comics = self.cursor.fetchall()
-            # TODO - remove once front end is using new contract
-            for comic in comics:
-                comic.update({"comic": {"title": comic["title"], "panels": comic["panels"]}})
 
             return {
                 "comics": comics,
-                "pageId": page_num + 1
+                "pageId": page_num + 1 if len(comics) == PAGE_LIMIT else None
             }
         except Exception as e:
             print_exception(e)
