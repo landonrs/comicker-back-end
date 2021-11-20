@@ -9,6 +9,8 @@ import uuid
 SUB = "sub"
 GIVEN_NAME = "given_name"
 
+comic_table = ComicTable()
+
 
 def create_comic_handler(event, context):
     """
@@ -29,7 +31,6 @@ def create_comic_handler(event, context):
         }
 
     body = json.loads(event["body"])
-    comic_table = ComicTable()
 
     comic_id = body.get("comicId")
 

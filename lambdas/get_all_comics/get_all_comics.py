@@ -4,6 +4,8 @@ import warnings
 warnings.filterwarnings("ignore", category=SyntaxWarning)
 
 
+comic_table = ComicTable()
+
 def get_all_comics_handler(event, context):
     """
     Get list of all comic metadata.
@@ -16,7 +18,7 @@ def get_all_comics_handler(event, context):
     """
     page_id = event["pathParameters"].get("pageId", "first")
     print(f"Getting comic for page {page_id}.")
-    page_response = ComicTable().get_comics_page(page_num=0 if page_id == "first" else page_id)
+    page_response = comic_table.get_comics_page(page_num=0 if page_id == "first" else page_id)
 
     response = {
         "statusCode": 200,

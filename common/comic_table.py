@@ -18,15 +18,17 @@ PAGE_LIMIT = 10
 class ComicTable:
     def __init__(self):
         try:
-            print("Attempting to connect to DB.")
+
             if os.getenv("SYSTEM") == "prod":
                 ssm_client = boto3.client("ssm")
                 db_creds = json.loads(ssm_client.get_parameter(Name=DB_PARAMETER)["Parameter"]["Value"])
+                print(f"Attempting to connect to DB in prod.")
                 conn = pg.connect(
                     f"dbname='comicker' user={db_creds['user']} host={PROD_ENDPOINT} password={db_creds['password']}",
                     connect_timeout=3)
 
             else:
+                print(f"Attempting to connect to DB in local at {LOCAL_ENDPOINT}.")
                 conn = pg.connect(
                     f"dbname='comicker' user='docker' host={LOCAL_ENDPOINT} password='docker'", connect_timeout=3)
 

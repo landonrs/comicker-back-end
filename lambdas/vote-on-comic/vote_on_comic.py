@@ -8,6 +8,8 @@ warnings.filterwarnings("ignore", category=SyntaxWarning)
 VOTER_IDS = "voterIds"
 
 
+comic_table = ComicTable()
+
 def vote_on_comic_panel_handler(event, context):
     """
     Vote on a comic panel
@@ -35,8 +37,6 @@ def vote_on_comic_panel_handler(event, context):
         }
 
     user_id = user_profile["sub"]
-
-    comic_table = ComicTable()
 
     comic_data = comic_table.get_comic(comic_id)
 
